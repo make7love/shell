@@ -6,7 +6,6 @@
 #used by sp servers consist of 1 manage server and 3 application servers
 #此脚本用于shell公共类库；
 
-
 function get_current_time_stamp()
 {
 	echo `date "+%Y/%m/%d %H:%M:%S"`
