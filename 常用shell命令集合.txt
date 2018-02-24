@@ -1,0 +1,5 @@
+常用shell命令集合：
+
+#查找文件并转码；
+#注意： 在两个括号前后，都要有空格，否则报错！
+find . \( -name "*.sh" -o -name "*.py" -o -name "*.ini" -o -name "*.cnf" -o -name "*.conf" -o -name "*.sql" \) | xargs dos2unix
