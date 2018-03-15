@@ -2,4 +2,78 @@
 
 #查找文件并转码；
 #注意： 在两个括号前后，都要有空格，否则报错！
-find . \( -name "*.sh" -o -name "*.py" -o -name "*.ini" -o -name "*.cnf" -o -name "*.conf" -o -name "*.sql" \) | xargs dos2unix
+1). find . \( -name "*.sh" -o -name "*.py" -o -name "*.ini" -o -name "*.cnf" -o -name "*.conf" -o -name "*.sql" \) | xargs dos2unix
+
+
+#将某命令的输出结果赋值给一个变量 a
+#如果使用 echo $a 输出变量，则变量中的 换行都会被忽略掉，所有内容输出到一行
+#而使用 echo "$a"  可正常输出变量中的换行
+2).
+wsrep_string=$(mysql -u${sp_mysqld_user} $pwd_string -e "show status like 'wsrep_%';")
+cluster_status=$(echo "$wsrep_string" | grep "wsrep_cluster_status" | cut -f 2)
+
+3).将shell命令执行结果再处理，避免出现子进程的方法是：
+while read line
+do
+done<< EOF
+`commdon`
+EOF
+
+
+4). curl命令结果不显示统计信息% Total % Received % 
+-----使用curl的-s 选项即可
+
+5). 压缩目录：
+	tar -zcvf www.tar.gz /var/www
+	解压缩：
+	tar -zxvf www.tar.gz  -C  / var (var前面有空格)
+	
+6). linux shell中判断目录是否为空
+
+	#!/bin/sh
+	##方法一 判断输出字符数统计为0
+	is_empty_dir(){ 
+		return `ls -A $1|wc -w`
+	}
+	##方法二 判断输出string为空
+	#is_empty_dir(){ 
+	#   return $[ -z `ls -A $1` ]
+	#}
+
+	if is_empty_dir $1
+	then
+		echo " $1 is empty"
+	else
+		echo " $1 is not empty"    
+	fi
+	
+	
+7). 向文件最后一行后，插入空行；
+sed -i '$G' file
+
+8). loginctl命令用于查看当前登录的用户。
+
+
+# 列出当前session
+$ loginctl list-sessions
+
+# 列出当前登录用户
+$ loginctl list-users
+
+# 列出显示指定用户的信息
+$ loginctl show-user ruanyf
+
+
+9). 去掉字符串中的空格：
+$(echo $2 | sed s/[[:space:]]//g)
+
+10). 
+压缩命令：
+tar -zcvPf www.tar.gz -C /var/ www (注意www前有空格)
+解压：
+tar -zxvf www.tar.gz (解压到当前目录)
+tar -zxvf www.tar.gz -C  /var/www (解压到指定目录)
+解压包中的部分目录到指定目录：
+tar -zxv -C /var/tmp -f www.tar.gz www/html/ihotel_hd_01
+
+

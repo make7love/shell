@@ -70,9 +70,13 @@ if [ -f /etc/pam.d/su ];then
 	cp /etc/pam.d/su  /sunlight/repair/
 	if [ $(egrep "auth[ ]*sufficient[ ]*pam_rootok.so" /etc/pam.d/su | wc -l) -ne 1 ];then
 		sed -i "1a\auth sufficient pam_rootok.so" /etc/pam.d/su
+	else
+		send_info "pam_rootok  set found...skip!"
 	fi
 	if [ $(egrep "auth[ ]*required[ ]*pam_wheel.so[ ]*group=wheel" /etc/pam.d/su | wc -l) -ne 1 ];then
 		sed -i '/auth[ ]*sufficient[ ]*pam_rootok.so$/a\auth required pam_wheel.so group=wheel' /etc/pam.d/su
+	else
+		send_info "limit user su to root set found...skip!"
 	fi
 	if [ $? -eq 0 ];then
 		send_success "特定用户su到root - 设置成功！"
@@ -87,6 +91,7 @@ fi
 send_info "设置密码复杂度和优先级..."
 send_info "设置密码长度为8, 包含大小写字母和数字..."
 if [ -f /etc/pam.d/common-password ];then
+	cp /etc/pam.d/common-password  /sunlight/repair/
 	sed -i '/password\trequisite\tpam_cracklib.so/c\password\trequisite\tpam_cracklib.so\t  minlen=8\tucredit=-1\tlcredit=-1\tdcredit=-1' /etc/pam.d/common-password
 	if [ $? -eq 0 ];then
 		send_success "密码复杂度 - 设置成功！"
@@ -104,6 +109,16 @@ if [ -f /etc/login.defs ];then
 	sed -i '/^PASS_MAX_DAYS/c\PASS_MAX_DAYS	90'  /etc/login.defs
 	if [ $? -eq 0 ];then
 		send_success "口令生存周期 - 设置成功！"
+	fi
+	
+	sed -i '/^PASS_MIN_DAYS/c\PASS_MIN_DAYS 6'  /etc/login.defs
+	if [ $? -eq 0 ];then
+	send_success "设置口令更改最小间隔天数- 设置成功！"
+	fi
+	
+	sed -i '$a\PASS_MIN_LEN 6'  /etc/login.defs
+	if [ $? -eq 0 ];then
+		send_success "检查口令最小长度为6- 设置成功！"
 	fi
 else
 	send_error "file /etc/login.defs not found..."
@@ -258,6 +273,46 @@ fi
 if [ $? -eq 0 ];then
 	send_success "潜在危险文件 - 移除成功！"
 fi
+
+
+
+
+#14）检查系统core dump设置
+if [ -f /etc/security/limits.conf ];then
+	cp /etc/security/limits.conf  /sunlight/repair/
+	if [ $(grep "hard core" /etc/security/limits.conf | wc -l) -gt 0 ];then
+		sed -i '/hard core/d' /etc/security/limits.conf
+	fi
+	sed -i '$a\* hard core 0' /etc/security/limits.conf 
+	if [ $? -eq 0 ];then
+		send_success "hard core 设置成功！"
+	fi
+	
+	if [ $(grep "soft core" /etc/security/limits.conf | wc -l) -gt 0 ];then
+		sed -i '/soft core/d' /etc/security/limits.conf
+	fi
+	sed -i '$a\* soft core 0' /etc/security/limits.conf
+	if [ $? -eq 0 ];then
+		send_success "soft core 设置成功！"
+	fi
+else
+	send_error "/etc/security/limits.conf not found...!"
+fi
+
+
+#15). 检查历史命令设置；
+if [ $(egrep "^HISTFILESIZE" /etc/profile | wc -l) -eq 1 ];then
+	sed -i '/^HISTFILESIZE/c\HISTFILESIZE=5' /etc/profile
+else
+	sed -i '$a\HISTFILESIZE=5' /etc/profile
+fi
+if [ $? -eq 0 ];then
+	send_success "保留历史命令条数：5"
+fi
+
+#16). 检查密码重复使用次数限制
+sed -i '$a\password sufficient pam_unix.so md5 shadow nullok try_first_pass use_authtok remember=5'
+
 touch /sunlight/repair/finish
 echo "----------------修复完成----------------"
 exit 0
